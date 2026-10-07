@@ -1,0 +1,14 @@
+scripts/
+tests/
+models/
+__pycache__/
+*.pyc
+.env
+.env.example
+requirements.txt
+.github/
+.git/
+.gitignore
+NODE_MODULES
+node_modules
+

@@ -1,0 +1,457 @@
+openapi: 3.0.0
+info:
+  title: Heart Disease Prediction API
+  description: |
+    Advanced ML-powered REST API for cardiac risk assessment
+    
+    ## Features
+    - Individual and batch predictions
+    - Model performance metrics
+    - Health monitoring endpoints
+    - Production-grade error handling
+    - Request validation and sanitization
+    
+    ## Authentication
+    No authentication required for MVP (add API keys for production)
+    
+    ## Rate Limiting
+    Current: 100 requests/minute per IP
+    
+    ## Response Codes
+    - 200: Successful prediction
+    - 400: Invalid input parameters
+    - 422: Validation error (missing/malformed fields)
+    - 500: Server error
+  version: 2.0.0
+  contact:
+    name: Affan Khan
+    url: https://github.com/khanaffan21/Heart-Disease-Prediction
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:5000
+    description: Local development
+  - url: https://api.heartprediction.dev
+    description: Production
+
+tags:
+  - name: Predictions
+    description: Patient risk assessment endpoints
+  - name: Model Info
+    description: Model performance and metadata
+  - name: Health
+    description: Service status and monitoring
+
+paths:
+  /api/predict:
+    post:
+      summary: Single Patient Prediction
+      description: |
+        Predict heart disease risk for a single patient based on clinical features.
+        Returns risk probability (0-100%) and risk category.
+      tags:
+        - Predictions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatientInput'
+            examples:
+              low_risk:
+                value:
+                  age: 35
+                  sex: 0
+                  chest_pain_type: 0
+                  resting_bp: 110
+                  cholesterol: 180
+                  fasting_bs: 0
+                  resting_ecg: 0
+                  max_hr: 170
+                  exercise_angina: 0
+                  oldpeak: 0
+                  st_slope: 0
+              high_risk:
+                value:
+                  age: 65
+                  sex: 1
+                  chest_pain_type: 1
+                  resting_bp: 160
+                  cholesterol: 300
+                  fasting_bs: 1
+                  resting_ecg: 2
+                  max_hr: 100
+                  exercise_angina: 1
+                  oldpeak: 3.5
+                  st_slope: 2
+      responses:
+        '200':
+          description: Prediction successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PredictionResponse'
+              example:
+                prediction: 0
+                probability: 22.5
+                risk_level: "low"
+                confidence: 95.2
+                timestamp: "2024-06-15T10:30:45Z"
+                model_version: "2.0.0"
+        '400':
+          description: Bad request - invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error - missing or invalid fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+
+  /api/predict/batch:
+    post:
+      summary: Batch Predictions
+      description: |
+        Process multiple patient records in a single request.
+        Maximum batch size: 1000 records
+      tags:
+        - Predictions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchPredictionRequest'
+      responses:
+        '200':
+          description: Batch predictions successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchPredictionResponse'
+        '400':
+          description: Bad request - invalid batch
+        '413':
+          description: Payload too large - batch exceeds size limit
+
+  /api/model/info:
+    get:
+      summary: Model Information
+      description: |
+        Retrieve detailed model performance metrics, architecture,
+        training dataset information, and feature importance.
+      tags:
+        - Model Info
+      responses:
+        '200':
+          description: Model information retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelInfoResponse'
+              example:
+                model_name: "Gradient Boosting Classifier"
+                model_version: "2.0.0"
+                training_date: "2024-06-10"
+                dataset_size: 918
+                accuracy: 0.875
+                precision: 0.852
+                recall: 0.891
+                f1_score: 0.872
+                roc_auc: 0.925
+                feature_importance:
+                  st_slope: 0.245
+                  exercise_angina: 0.198
+                  oldpeak: 0.176
+                  max_hr: 0.134
+                feature_names:
+                  - Age
+                  - Sex
+                  - ChestPainType
+                  - RestingBP
+                  - Cholesterol
+                  - FastingBS
+                  - RestingECG
+                  - MaxHR
+                  - ExerciseAngina
+                  - Oldpeak
+                  - ST_Slope
+
+  /api/health:
+    get:
+      summary: Health Check
+      description: |
+        Check service status and readiness.
+        Used for container orchestration and monitoring.
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: "healthy"
+                version: "2.0.0"
+                timestamp: "2024-06-15T10:30:45Z"
+                uptime_seconds: 3600
+                model_loaded: true
+                database_connected: true
+        '503':
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /:
+    get:
+      summary: Frontend Interface
+      description: Serves the interactive web-based prediction interface
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Frontend HTML served
+
+components:
+  schemas:
+    PatientInput:
+      type: object
+      required:
+        - age
+        - sex
+        - chest_pain_type
+        - resting_bp
+        - cholesterol
+        - fasting_bs
+        - resting_ecg
+        - max_hr
+        - exercise_angina
+        - oldpeak
+        - st_slope
+      properties:
+        age:
+          type: integer
+          minimum: 18
+          maximum: 120
+          description: Patient age in years
+          example: 45
+        sex:
+          type: integer
+          enum: [0, 1]
+          description: "Sex (0=Female, 1=Male)"
+          example: 1
+        chest_pain_type:
+          type: integer
+          enum: [0, 1, 2, 3]
+          description: "Chest pain type (0=Typical, 1=Atypical, 2=Non-anginal, 3=Asymptomatic)"
+          example: 1
+        resting_bp:
+          type: integer
+          minimum: 60
+          maximum: 300
+          description: Resting blood pressure (mmHg)
+          example: 130
+        cholesterol:
+          type: integer
+          minimum: 0
+          maximum: 500
+          description: Serum cholesterol (mg/dL)
+          example: 240
+        fasting_bs:
+          type: integer
+          enum: [0, 1]
+          description: "Fasting blood sugar (0=<=120, 1=>120 mg/dL)"
+          example: 0
+        resting_ecg:
+          type: integer
+          enum: [0, 1, 2]
+          description: "ECG at rest (0=Normal, 1=ST-T abnormality, 2=LV hypertrophy)"
+          example: 0
+        max_hr:
+          type: integer
+          minimum: 50
+          maximum: 250
+          description: Maximum heart rate achieved
+          example: 150
+        exercise_angina:
+          type: integer
+          enum: [0, 1]
+          description: "Exercise induced angina (0=No, 1=Yes)"
+          example: 0
+        oldpeak:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 10
+          description: ST depression induced by exercise (Oldpeak)
+          example: 1.5
+        st_slope:
+          type: integer
+          enum: [0, 1, 2]
+          description: "ST segment slope (0=Upsloping, 1=Flat, 2=Downsloping)"
+          example: 1
+
+    PredictionResponse:
+      type: object
+      properties:
+        prediction:
+          type: integer
+          enum: [0, 1]
+          description: "0=No disease, 1=Disease present"
+        probability:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          description: Probability of heart disease (%)
+        risk_level:
+          type: string
+          enum: [low, moderate, high]
+          description: Risk category
+        confidence:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          description: Model confidence in prediction
+        timestamp:
+          type: string
+          format: date-time
+          description: Prediction timestamp
+        model_version:
+          type: string
+          description: Model version used
+
+    BatchPredictionRequest:
+      type: object
+      required:
+        - patients
+      properties:
+        patients:
+          type: array
+          maxItems: 1000
+          items:
+            $ref: '#/components/schemas/PatientInput'
+
+    BatchPredictionResponse:
+      type: object
+      properties:
+        batch_id:
+          type: string
+          description: Unique batch identifier
+        total_records:
+          type: integer
+          description: Total records processed
+        successful:
+          type: integer
+          description: Successfully processed records
+        failed:
+          type: integer
+          description: Failed records
+        predictions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PredictionResponse'
+        processing_time_ms:
+          type: integer
+          description: Total processing time in milliseconds
+
+    ModelInfoResponse:
+      type: object
+      properties:
+        model_name:
+          type: string
+        model_version:
+          type: string
+        training_date:
+          type: string
+          format: date
+        dataset_size:
+          type: integer
+        accuracy:
+          type: number
+          format: float
+        precision:
+          type: number
+          format: float
+        recall:
+          type: number
+          format: float
+        f1_score:
+          type: number
+          format: float
+        roc_auc:
+          type: number
+          format: float
+        feature_importance:
+          type: object
+          additionalProperties:
+            type: number
+        feature_names:
+          type: array
+          items:
+            type: string
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        version:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        uptime_seconds:
+          type: integer
+        model_loaded:
+          type: boolean
+        database_connected:
+          type: boolean
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+        code:
+          type: string
+          description: Error code for debugging
+        timestamp:
+          type: string
+          format: date-time
+
+    ValidationErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        validation_errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+              value:
+                type: string
+
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: X-API-Key
+      in: header
+      description: API key for production deployments

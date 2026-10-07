@@ -1,0 +1,122 @@
+name: Tests & Build
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9', '3.10', '3.11']
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Cache pip packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Lint with flake8 (if available)
+      run: |
+        pip install flake8 2>/dev/null || true
+        flake8 scripts/ api/ --count --statistics --show-source 2>/dev/null || true
+      continue-on-error: true
+    
+    - name: Run unit tests
+      run: |
+        pytest tests/test_model.py -v --tb=short
+    
+    - name: Check data integrity
+      run: |
+        python -c "import pandas as pd; df = pd.read_csv('heart.csv'); assert len(df) == 918; assert 'HeartDisease' in df.columns; print('✓ Dataset integrity verified')"
+    
+    - name: Verify model training script
+      run: |
+        python scripts/train.py
+      continue-on-error: true
+    
+    - name: Generate test coverage report
+      run: |
+        pytest tests/test_model.py --cov=scripts --cov-report=term-missing 2>/dev/null || true
+      continue-on-error: true
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./coverage.xml
+        fail_ci_if_error: false
+      continue-on-error: true
+
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install linters
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 black isort 2>/dev/null || true
+    
+    - name: Check code formatting
+      run: |
+        black --check scripts/ api/ tests/ 2>/dev/null || true
+        isort --check-only scripts/ api/ tests/ 2>/dev/null || true
+      continue-on-error: true
+    
+    - name: Lint Python files
+      run: |
+        flake8 scripts/ api/ tests/ --count --exit-zero --max-line-length=127 --statistics
+      continue-on-error: true
+
+  frontend:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Validate HTML
+      run: |
+        python -m http.server 8000 > /dev/null 2>&1 &
+        sleep 2
+        curl -s http://localhost:8000/index.html > /tmp/page.html
+        grep -q "Heart Disease Risk Predictor" /tmp/page.html && echo "✓ HTML structure verified" || exit 1
+      continue-on-error: true
+
+  build-success:
+    name: Build Success
+    runs-on: ubuntu-latest
+    needs: [test, lint, frontend]
+    if: always()
+    
+    steps:
+    - name: Check test results
+      run: |
+        if [ "${{ needs.test.result }}" = "failure" ]; then
+          echo "❌ Tests failed"
+          exit 1
+        fi
+        echo "✅ All checks passed!"

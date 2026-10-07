@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HeartCare Platform | Prediction, Wellness & AI Chat</title>
+  <meta name="description" content="Comprehensive cardiac wellness platform — predict heart disease risk, get preventive measures, treatment suggestions, yoga & diet guides, and chat with HeartCare AI." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="chatbot.css" />
+  <style>
+    /* ─── Design Tokens ─── */
+    :root {
+      --bg-deep:    #0a0508;
+      --bg-card:    #150b11;
+      --bg-glass:   rgba(255,255,255,0.03);
+      --border:     rgba(255,255,255,0.08);
+      --border-glow:rgba(239,68,68,0.4);
+      --accent-1:   #ef4444; /* red-500 */
+      --accent-2:   #f43f5e; /* rose-500 */
+      --accent-3:   #14b8a6; /* teal-500 */
+      --accent-hot: #fbbf24; /* amber-400 */
+      --text-main:  #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim:   #cbd5e1;
+      --success:    #10b981;
+      --warning:    #f59e0b;
+      --danger:     #ef4444;
+      --radius:     16px;
+      --radius-sm:  10px;
+      --shadow-glow:0 0 40px rgba(239,68,68,0.15);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-deep);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Animated Background ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(239,68,68,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(244,63,94,0.06) 0%, transparent 55%),
+        radial-gradient(ellipse 40% 40% at 50% 50%, rgba(20,184,166,0.05) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    /* ── Floating orbs ── */
+    .orb {
+      position: fixed; border-radius: 50%; pointer-events: none; z-index: 0;
+      filter: blur(80px); opacity: 0.15; animation: floatOrb 12s ease-in-out infinite;
+    }
+    .orb-1 { width:400px; height:400px; background:#ef4444; top: -100px; left: -80px; animation-delay: 0s; }
+    .orb-2 { width:350px; height:350px; background:#f43f5e; bottom:-80px; right:-60px; animation-delay:-5s; }
+    .orb-3 { width:200px; height:200px; background:#14b8a6; top:50%; left:60%; animation-delay:-3s; }
+
+    @keyframes floatOrb {
+      0%,100% { transform: translate(0,0) scale(1); }
+      33%      { transform: translate(30px,-40px) scale(1.05); }
+      66%      { transform: translate(-20px, 30px) scale(0.96); }
+    }
+
+    /* ── Layout ── */
+    .page-wrap {
+      position: relative; z-index: 1;
+      max-width: 1100px; margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    /* ── Header ── */
+    header {
+      text-align: center;
+      padding: 60px 0 40px;
+    }
+    .chip {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(239,68,68,0.12);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 100px; padding: 6px 16px;
+      font-size: 12px; font-weight: 600; letter-spacing: .08em;
+      color: #fca5a5; text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+    .chip .dot { width:7px; height:7px; border-radius:50%; background:#ef4444; animation: pulse 1.8s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)} }
+
+    h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 700; line-height: 1.1;
+      background: linear-gradient(135deg, #f8fafc 0%, #fecaca 50%, #f87171 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+    }
+    .subtitle {
+      font-size: 1.05rem; color: var(--text-dim); max-width: 600px; margin: 0 auto;
+      line-height: 1.65;
+    }
+
+    /* ── Stats bar ── */
+    .stats-bar {
+      display: flex; justify-content: center; gap: 32px;
+      flex-wrap: wrap; margin-top: 36px;
+      padding: 20px 32px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      backdrop-filter: blur(12px);
+    }
+    .stat { text-align: center; }
+    .stat-num {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.35rem; font-weight: 700;
+      color: var(--accent-1);
+    }
+    .stat-lbl { font-size: 11px; color: var(--text-muted); font-weight: 500; letter-spacing:.06em; text-transform:uppercase; }
+
+    /* ── Main grid ── */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 28px; margin-top: 40px;
+      align-items: start;
+    }
+    @media(max-width:860px){ .main-grid{ grid-template-columns:1fr; } }
+
+    /* ── Card ── */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      backdrop-filter: blur(16px);
+      transition: border-color .3s;
+    }
+    .card:hover { border-color: var(--border-glow); }
+
+    .card-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.15rem; font-weight: 600;
+      color: var(--text-main); margin-bottom: 24px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .card-title .icon {
+      width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+      background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+      font-size: 18px; flex-shrink:0; color: white;
+    }
+
+    /* ── Form Controls ── */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    @media(max-width:540px){ .form-grid{ grid-template-columns:1fr; } }
+    .form-group { display:flex; flex-direction:column; gap:8px; }
+    .form-group.full { grid-column: 1/-1; }
+
+    label {
+      font-size: 12px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .07em; color: var(--text-muted);
+    }
+
+    select, input[type=range], input[type=number] {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      transition: border-color .25s, box-shadow .25s;
+      outline: none; appearance: none;
+    }
+    select, input[type=number] {
+      padding: 12px 14px;
+    }
+    select {
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='%23ef4444' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 18px;
+      padding-right: 40px;
+    }
+    select option { background: #1e0e15; color: #f1f5f9; }
+    select:focus, select:hover, input[type=number]:focus { border-color: var(--accent-1); box-shadow: 0 0 0 3px rgba(239,68,68,0.15); }
+
+    /* ── Range Slider ── */
+    .range-wrap { position:relative; }
+    input[type=range] {
+      -webkit-appearance: none;
+      height: 6px; border-radius: 6px; border:none;
+      background: linear-gradient(to right, var(--accent-1) var(--pct,50%), rgba(255,255,255,0.1) var(--pct,50%));
+      cursor: pointer; padding:0;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance:none;
+      width:20px; height:20px; border-radius:50%;
+      background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+      border:2px solid var(--bg-card); box-shadow:0 0 10px rgba(239,68,68,.5);
+      cursor:pointer; transition:box-shadow .2s;
+    }
+    input[type=range]::-webkit-slider-thumb:hover { box-shadow:0 0 16px rgba(239,68,68,.8); }
+    input[type=range]:focus { box-shadow:none; }
+
+    .range-labels {
+      display:flex; justify-content:space-between; margin-top:6px;
+    }
+    .range-labels span { font-size:11px; color:var(--text-muted); }
+    .range-val {
+      font-size:14px; font-weight:700; color:var(--accent-1); text-align:right; margin-top:4px;
+    }
+
+    /* ── Toggle pills ── */
+    .toggle-row { display:flex; gap:8px; flex-wrap:wrap; }
+    .toggle-pill {
+      flex:1; min-width:60px;
+      border:1px solid var(--border); border-radius:8px;
+      padding:10px 8px; text-align:center; cursor:pointer;
+      font-size:13px; font-weight:500; color:var(--text-dim);
+      transition:all .2s; user-select:none; position:relative;
+    }
+    .toggle-pill.active {
+      border-color: var(--accent-1);
+      background: rgba(239,68,68,0.15);
+      color: #fca5a5;
+      box-shadow: 0 0 12px rgba(239,68,68,0.2);
+    }
+    .toggle-pill:hover:not(.active) { border-color:rgba(239,68,68,0.3); color:var(--text-main); }
+    .toggle-pill input { position:absolute; opacity:0; pointer-events:none; }
+
+    /* ── Predict Button ── */
+    .predict-btn {
+      width:100%; padding:16px 24px; margin-top:28px;
+      background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+      border:none; border-radius:var(--radius-sm);
+      color:#fff; font-family:'Space Grotesk',sans-serif;
+      font-size:16px; font-weight:700; cursor:pointer;
+      position:relative; overflow:hidden; letter-spacing:.02em;
+      transition:transform .2s, box-shadow .2s;
+      box-shadow: 0 4px 24px rgba(239,68,68,0.4);
+    }
+    .predict-btn::before {
+      content:''; position:absolute; inset:0;
+      background:linear-gradient(135deg,rgba(255,255,255,0.1),transparent);
+    }
+    .predict-btn:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(239,68,68,0.55); }
+    .predict-btn:active { transform:translateY(0); }
+    .predict-btn .btn-text { position:relative; z-index:1; display:flex; align-items:center; justify-content:center; gap:10px; }
+    .spinner { display:none; width:18px; height:18px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin .6s linear infinite; }
+    @keyframes spin { to{transform:rotate(360deg)} }
+
+    /* ── Results Panel ── */
+    .results-panel { display:flex; flex-direction:column; gap:20px; }
+
+    .metric-card {
+      background:var(--bg-card); border:1px solid var(--border);
+      border-radius:var(--radius); padding:24px; position:relative; overflow:hidden;
+      transition:all .4s; opacity:1;
+    }
+    .metric-card.hidden { opacity:0; transform:translateY(20px); pointer-events:none; }
+    .metric-card::after {
+      content:''; position:absolute; top:0; left:0; right:0; height:3px;
+    }
+    
+    /* Dynamic border colors for risk */
+    .metric-card.risk-low::after { background:linear-gradient(90deg,var(--success),var(--accent-3)); }
+    .metric-card.risk-moderate::after { background:linear-gradient(90deg,var(--warning),var(--accent-hot)); }
+    .metric-card.risk-high::after { background:linear-gradient(90deg,var(--danger),var(--accent-2)); }
+
+    .metric-label {
+      font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.08em;
+      color:var(--text-muted); margin-bottom:10px;
+      display:flex; align-items:center; gap:8px;
+    }
+    .metric-label .badge {
+      padding:2px 8px; border-radius:100px; font-size:10px; font-weight:700;
+    }
+    .metric-value {
+      font-family:'Space Grotesk',sans-serif;
+      font-size:2.5rem; font-weight:700; color:var(--text-main);
+      line-height:1; margin-bottom:8px;
+    }
+    .metric-sub { font-size:13px; color:var(--text-muted); }
+
+    /* Gauge bar */
+    .gauge-track {
+      height:8px; border-radius:8px; background:rgba(255,255,255,0.08);
+      margin-top:12px; overflow:hidden;
+    }
+    .gauge-fill {
+      height:100%; border-radius:8px; transition:width 1s cubic-bezier(.4,0,.2,1);
+      width:0%;
+    }
+
+    /* Status badge */
+    .status-badge {
+      display:inline-flex; align-items:center; gap:8px;
+      border-radius:100px; padding:6px 16px;
+      font-size:14px; font-weight:700; margin-top: 10px; margin-bottom: 15px;
+    }
+    .status-badge.low { background:rgba(16,185,129,0.15); color:#6ee7b7; border:1px solid rgba(16,185,129,0.3); }
+    .status-badge.moderate { background:rgba(245,158,11,0.15); color:#fcd34d; border:1px solid rgba(245,158,11,0.3); }
+    .status-badge.high { background:rgba(239,68,68,0.15); color:#fca5a5; border:1px solid rgba(239,68,68,0.3); }
+
+    /* Breakdown list */
+    .breakdown { display:flex; flex-direction:column; gap:10px; margin-top:14px; padding-top:14px; border-top:1px solid var(--border); }
+    .breakdown-row { display:flex; justify-content:space-between; align-items:center; font-size:13px; }
+    .breakdown-key { color:var(--text-muted); }
+    .breakdown-val { font-weight:600; color:var(--text-main); }
+    .factor-positive { color: var(--danger); } /* In medical risk, positive factor means higher risk, so it's red */
+    .factor-negative { color: var(--success); } /* Lower risk */
+
+    /* Placeholder card */
+    .placeholder-card {
+      background:var(--bg-card); border:1px dashed var(--border);
+      border-radius:var(--radius); padding:48px 24px;
+      text-align:center; color:var(--text-muted);
+    }
+    .placeholder-card .big-icon { font-size:3rem; margin-bottom:16px; opacity:.4; }
+    .placeholder-card p { font-size:14px; line-height:1.6; }
+
+    /* Tooltip */
+    .tooltip-wrap { position:relative; display:inline-block; }
+    .tooltip-icon {
+      display:inline-flex; width:16px; height:16px; align-items:center; justify-content:center;
+      border-radius:50%; background:rgba(239,68,68,0.2); color:#fca5a5;
+      font-size:10px; font-weight:700; cursor:help; margin-left:6px;
+    }
+    .tooltip-box {
+      position:absolute; bottom:calc(100%+8px); left:50%; transform:translateX(-50%);
+      background:#1e0e15; border:1px solid var(--border); border-radius:8px;
+      padding:8px 12px; font-size:12px; color:var(--text-dim);
+      white-space:nowrap; opacity:0; pointer-events:none; transition:opacity .2s;
+      z-index:100;
+    }
+    .tooltip-wrap:hover .tooltip-box { opacity:1; }
+
+    /* Footer */
+    footer {
+      text-align:center; padding-top:40px;
+      font-size:12px; color:var(--text-muted);
+      border-top:1px solid var(--border);
+      line-height:1.8;
+    }
+
+    .reveal { opacity:0; transform:translateY(24px); transition:opacity .6s, transform .6s; }
+    .reveal.visible { opacity:1; transform:none; }
+
+    /* ── Wellness Sections (post-prediction) ── */
+    .wellness-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: border-color .3s;
+    }
+    .wellness-section:hover { border-color: var(--border-glow); }
+
+    .wellness-header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 18px 24px; cursor: pointer;
+      user-select: none;
+      transition: background .2s;
+    }
+    .wellness-header:hover { background: rgba(255,255,255,0.03); }
+    .wellness-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .wellness-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1rem; font-weight: 600; color: var(--text-main); flex: 1;
+    }
+    .wellness-subtitle { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .wellness-chevron {
+      color: var(--text-muted); font-size: 14px;
+      transition: transform .3s;
+    }
+    .wellness-section.open .wellness-chevron { transform: rotate(180deg); }
+
+    .wellness-body {
+      max-height: 0; overflow: hidden;
+      transition: max-height .4s cubic-bezier(.4,0,.2,1);
+      border-top: 0px solid var(--border);
+    }
+    .wellness-section.open .wellness-body {
+      max-height: 900px;
+      border-top: 1px solid var(--border);
+    }
+    .wellness-content { padding: 20px 24px; }
+
+    .wellness-list { display: flex; flex-direction: column; gap: 10px; }
+    .wellness-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px;
+      font-size: 13px; color: var(--text-dim); line-height: 1.5;
+    }
+    .wellness-item-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+    .wellness-item strong { color: var(--text-main); display: block; font-size: 13px; margin-bottom: 2px; }
+
+    .two-col-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media(max-width:500px) { .two-col-grid { grid-template-columns: 1fr; } }
+
+    .tag-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .tag {
+      padding: 5px 12px; border-radius: 100px; font-size: 11px; font-weight: 600;
+    }
+    .tag.green { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; }
+    .tag.red   { background: rgba(239,68,68,0.12);  border: 1px solid rgba(239,68,68,0.3);  color: #fca5a5; }
+    .tag.blue  { background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd; }
+    .tag.amber { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: #fcd34d; }
+
+    .emergency-alert {
+      background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.35);
+      border-radius: 10px; padding: 14px 16px;
+      font-size: 13px; color: #fca5a5; margin-bottom: 14px;
+      display: flex; gap: 10px; align-items: flex-start;
+    }
+    .emergency-alert .e-icon { font-size: 20px; flex-shrink: 0; }
+
+    .full-width-section {
+      grid-column: 1 / -1;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<!-- ══════ PREMIUM NAVIGATION BAR ══════ -->
+<div style="background:linear-gradient(90deg,rgba(239,68,68,0.1),rgba(244,63,94,0.1)); border-bottom:1px solid rgba(239,68,68,0.2); padding:12px 0; position:sticky; top:0; z-index:500; backdrop-filter:blur(8px);">
+  <div style="max-width:1100px; margin:0 auto; padding:0 24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+    <div style="display:flex; gap:20px; align-items:center; flex-wrap:wrap;">
+      <a href="/" style="font-size:12px; font-weight:700; color:#fca5a5; text-decoration:none; text-transform:uppercase; letter-spacing:.08em;">🏥 Prediction</a>
+      <a href="advanced_analytics.html" style="font-size:12px; font-weight:700; color:#94a3b8; text-decoration:none; text-transform:uppercase; letter-spacing:.08em; transition:color .2s;" onmouseover="this.style.color='#f8fafc'" onmouseout="this.style.color='#94a3b8'">📊 Analytics</a>
+      <a href="lifestyle.html" style="font-size:12px; font-weight:700; color:#94a3b8; text-decoration:none; text-transform:uppercase; letter-spacing:.08em; transition:color .2s;" onmouseover="this.style.color='#f8fafc'" onmouseout="this.style.color='#94a3b8'">🧘 Lifestyle Guide</a>
+      <div style="font-size:11px; color:#64748b; display:flex; gap:12px; border-left:1px solid rgba(255,255,255,0.1); padding-left:20px;">
+        <span title="Model Accuracy">✓ 87.5%</span>
+        <span title="AI Chatbot">✓ AI Chat</span>
+        <span title="Wellness Guides">✓ Wellness</span>
+      </div>
+    </div>
+    <button onclick="window.HeartCareChat && window.HeartCareChat.open()" style="font-size:11px; color:#0a0508; background:linear-gradient(135deg,#ef4444,#f43f5e); font-weight:700; text-transform:uppercase; letter-spacing:.08em; border:none; border-radius:8px; padding:7px 14px; cursor:pointer; transition:transform .2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">💬 Ask HeartCare AI</button>
+  </div>
+</div>
+
+<div class="page-wrap">
+
+  <!-- ──── Header ──── -->
+  <header class="reveal visible">
+    <div class="chip"><span class="dot"></span>Clinical ML Engine v2.0</div>
+    <h1>Heart Disease Risk Predictor</h1>
+    <p class="subtitle">
+      AI-powered cardiac risk assessment system. Enter your clinical metrics below and our production-grade Gradient Boosting model will calculate your diagnostic risk. Explore <a href="/advanced_analytics.html" style="color:#f8fafc; text-decoration:underline; transition:color .2s;" onmouseover="this.style.color='#fca5a5'" onmouseout="this.style.color='#f8fafc'">advanced analytics</a> including model performance metrics, feature importance analysis, and clinical guidelines.
+    </p>
+    <div class="stats-bar">
+      <div class="stat"><div class="stat-num">918</div><div class="stat-lbl">Training Samples</div></div>
+      <div class="stat"><div class="stat-num">87.5%</div><div class="stat-lbl">Model Accuracy</div></div>
+      <div class="stat"><div class="stat-num">3</div><div class="stat-lbl">ML Algorithms</div></div>
+      <div class="stat"><div class="stat-num">50+</div><div class="stat-lbl">Test Cases</div></div>
+    </div>
+  </header>
+
+  <!-- ──── Main Grid ──── -->
+  <div class="main-grid">
+
+    <!-- ── LEFT: Input Form ── -->
+    <div class="card reveal visible">
+      <div class="card-title">
+        <div class="icon">🩺</div>
+        Clinical Profile | v2.0
+      </div>
+
+      <div class="form-grid">
+
+        <!-- Age -->
+        <div class="form-group">
+          <label>Age</label>
+          <div class="range-wrap">
+            <input type="range" id="age" min="20" max="80" value="50" step="1"
+              oninput="updateRange(this,'age-val','20','80')" />
+            <div class="range-labels"><span>20</span><span>80</span></div>
+            <div class="range-val" id="age-val">50 yrs</div>
+          </div>
+        </div>
+
+        <!-- Gender -->
+        <div class="form-group">
+          <label>Sex</label>
+          <div class="toggle-row" id="sex-group">
+            <label class="toggle-pill active" onclick="setToggle('sex-group',this,'M')">
+              <input type="radio" name="sex" value="M" checked />Male</label>
+            <label class="toggle-pill" onclick="setToggle('sex-group',this,'F')">
+              <input type="radio" name="sex" value="F" />Female</label>
+          </div>
+        </div>
+
+        <!-- Chest Pain Type -->
+        <div class="form-group full">
+          <label>Chest Pain Type
+            <span class="tooltip-wrap">
+              <span class="tooltip-icon">?</span>
+              <span class="tooltip-box">ATA: Atypical Angina, NAP: Non-Anginal, ASY: Asymptomatic, TA: Typical Angina</span>
+            </span>
+          </label>
+          <select id="chest-pain">
+            <option value="ASY">ASY - Asymptomatic</option>
+            <option value="NAP">NAP - Non-Anginal Pain</option>
+            <option value="ATA">ATA - Atypical Angina</option>
+            <option value="TA">TA - Typical Angina</option>
+          </select>
+        </div>
+
+        <!-- Resting BP -->
+        <div class="form-group">
+          <label>Resting BP (mm Hg)</label>
+          <div class="range-wrap">
+            <input type="range" id="resting-bp" min="80" max="200" value="130" step="1"
+              oninput="updateRange(this,'bp-val','80','200')" />
+            <div class="range-labels"><span>80</span><span>200</span></div>
+            <div class="range-val" id="bp-val">130</div>
+          </div>
+        </div>
+
+        <!-- Cholesterol -->
+        <div class="form-group">
+          <label>Cholesterol (mg/dl)</label>
+          <div class="range-wrap">
+            <input type="range" id="cholesterol" min="0" max="600" value="220" step="1"
+              oninput="updateRange(this,'chol-val','0','600')" />
+            <div class="range-labels"><span>0</span><span>600</span></div>
+            <div class="range-val" id="chol-val">220</div>
+          </div>
+        </div>
+
+        <!-- Fasting Blood Sugar -->
+        <div class="form-group">
+          <label>Fasting BS > 120 mg/dl</label>
+          <div class="toggle-row" id="fbs-group">
+            <label class="toggle-pill" onclick="setToggle('fbs-group',this,'1')">
+              <input type="radio" name="fbs" value="1" />Yes</label>
+            <label class="toggle-pill active" onclick="setToggle('fbs-group',this,'0')">
+              <input type="radio" name="fbs" value="0" checked />No</label>
+          </div>
+        </div>
+
+        <!-- Exercise Angina -->
+        <div class="form-group">
+          <label>Exercise Angina</label>
+          <div class="toggle-row" id="exang-group">
+            <label class="toggle-pill" onclick="setToggle('exang-group',this,'Y')">
+              <input type="radio" name="exang" value="Y" />Yes</label>
+            <label class="toggle-pill active" onclick="setToggle('exang-group',this,'N')">
+              <input type="radio" name="exang" value="N" checked />No</label>
+          </div>
+        </div>
+
+        <!-- Resting ECG -->
+        <div class="form-group full">
+          <label>Resting ECG Results</label>
+          <select id="resting-ecg">
+            <option value="Normal">Normal</option>
+            <option value="ST">ST - ST-T wave abnormality</option>
+            <option value="LVH">LVH - Left ventricular hypertrophy</option>
+          </select>
+        </div>
+
+        <!-- Max HR -->
+        <div class="form-group">
+          <label>Max Heart Rate</label>
+          <div class="range-wrap">
+            <input type="range" id="max-hr" min="60" max="210" value="140" step="1"
+              oninput="updateRange(this,'hr-val','60','210')" />
+            <div class="range-labels"><span>60</span><span>210</span></div>
+            <div class="range-val" id="hr-val">140</div>
+          </div>
+        </div>
+
+        <!-- Oldpeak -->
+        <div class="form-group">
+          <label>Oldpeak (ST depression)</label>
+          <div class="range-wrap">
+            <input type="range" id="oldpeak" min="0" max="6.2" value="1.0" step="0.1"
+              oninput="updateRange(this,'oldpeak-val','0','6.2')" />
+            <div class="range-labels"><span>0.0</span><span>6.2</span></div>
+            <div class="range-val" id="oldpeak-val">1.0</div>
+          </div>
+        </div>
+
+        <!-- ST Slope -->
+        <div class="form-group full">
+          <label>ST Slope Segment</label>
+          <div class="toggle-row" id="st-group">
+            <label class="toggle-pill" onclick="setToggle('st-group',this,'Up')">
+              <input type="radio" name="st_slope" value="Up" />Upsloping</label>
+            <label class="toggle-pill active" onclick="setToggle('st-group',this,'Flat')">
+              <input type="radio" name="st_slope" value="Flat" checked />Flat</label>
+            <label class="toggle-pill" onclick="setToggle('st-group',this,'Down')">
+              <input type="radio" name="st_slope" value="Down" />Downsloping</label>
+          </div>
+        </div>
+
+      </div>
+
+      <button class="predict-btn" id="predict-btn" onclick="runPrediction()">
+        <div class="btn-text">
+          <span>🧠</span>
+          <span id="btn-label">Run Gradient Boosting Prediction</span>
+          <div class="spinner" id="spinner"></div>
+        </div>
+      </button>
+    </div>
+
+    <!-- ── RIGHT: Results ── -->
+    <div class="results-panel" id="results-panel">
+
+      <!-- Placeholder -->
+      <div class="placeholder-card" id="placeholder">
+        <div class="big-icon">📊</div>
+        <p><strong style="color:var(--text-main)">Diagnostic pending.</strong><br/>
+        Enter clinical metrics and click<br/><em>Analyze Clinical Risk</em></p>
+      </div>
+
+      <!-- Main Risk Prediction -->
+      <div class="metric-card hidden" id="res-risk">
+        <div class="metric-label">
+          ⚠️ Heart Disease Probability
+        </div>
+        <div class="metric-value" id="risk-pred">—</div>
+        
+        <div id="status-badge-wrap">
+          <div class="status-badge" id="risk-badge">Evaluating...</div>
+        </div>
+        
+        <div class="metric-sub" id="risk-sub">Probability of cardiovascular disease event based on similar clinical profiles.</div>
+        
+        <div class="gauge-track" style="margin-top:20px;">
+          <div class="gauge-fill" id="risk-gauge"></div>
+        </div>
+        <div class="range-labels" style="margin-top:6px;">
+          <span>0%</span><span>100%</span>
+        </div>
+
+        <div class="breakdown" id="risk-breakdown">
+          <div style="font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:8px; text-transform:uppercase;">Primary Risk Factors Identified</div>
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Chat CTA -->
+        <div id="chat-cta" style="margin-top:16px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.2); border-radius:10px; padding:12px 14px; display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="window.HeartCareChat && window.HeartCareChat.open()">
+          <span style="font-size:20px;">💬</span>
+          <div>
+            <div style="font-size:13px; font-weight:600; color:#fca5a5;">Ask HeartCare AI about your results</div>
+            <div style="font-size:11px; color:#94a3b8; margin-top:2px;">Get personalized prevention tips, diet advice & yoga routines</div>
+          </div>
+          <span style="margin-left:auto; color:#fca5a5; font-size:16px;">→</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════ POST-PREDICTION WELLNESS SECTIONS ══════ -->
+  <div id="wellness-container" style="display:none; margin-top:32px; flex-direction:column; gap:16px;">
+    <div style="text-align:center; margin-bottom:8px;">
+      <h2 style="font-family:'Space Grotesk',sans-serif; font-size:1.5rem; font-weight:700; background:linear-gradient(135deg,#f8fafc,#fecaca,#f87171); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">Your Personalized Wellness Plan</h2>
+      <p style="font-size:13px; color:var(--text-muted); margin-top:8px;">Based on your risk assessment — actionable steps for a healthier heart</p>
+    </div>
+
+    <!-- ── 1. Preventive Measures ── -->
+    <div class="wellness-section" id="ws-prevention">
+      <div class="wellness-header" onclick="toggleWellness('ws-prevention')">
+        <div class="wellness-icon" style="background:linear-gradient(135deg,rgba(239,68,68,0.2),rgba(244,63,94,0.15));">🛡️</div>
+        <div>
+          <div class="wellness-title">Preventive Measures</div>
+          <div class="wellness-subtitle">Evidence-based strategies to reduce your cardiac risk</div>
+        </div>
+        <div class="wellness-chevron">▼</div>
+      </div>
+      <div class="wellness-body">
+        <div class="wellness-content">
+          <div class="wellness-list" id="prevention-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 2. Treatment Suggestions ── -->
+    <div class="wellness-section" id="ws-treatment">
+      <div class="wellness-header" onclick="toggleWellness('ws-treatment')">
+        <div class="wellness-icon" style="background:linear-gradient(135deg,rgba(59,130,246,0.2),rgba(99,102,241,0.15));">💊</div>
+        <div>
+          <div class="wellness-title">Treatment & Medical Suggestions</div>
+          <div class="wellness-subtitle">Understand your options — always consult your doctor</div>
+        </div>
+        <div class="wellness-chevron">▼</div>
+      </div>
+      <div class="wellness-body">
+        <div class="wellness-content">
+          <div class="wellness-list" id="treatment-list"></div>
+          <p style="font-size:11px; color:var(--text-muted); margin-top:14px; font-style:italic;">⚠️ This is educational information only. Always consult a licensed cardiologist before starting any medication or treatment.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 3. Yoga & Wellness ── -->
+    <div class="wellness-section" id="ws-yoga">
+      <div class="wellness-header" onclick="toggleWellness('ws-yoga')">
+        <div class="wellness-icon" style="background:linear-gradient(135deg,rgba(20,184,166,0.2),rgba(6,182,212,0.15));">🧘</div>
+        <div>
+          <div class="wellness-title">Yoga & Breathing Exercises</div>
+          <div class="wellness-subtitle">Poses and pranayama scientifically proven to support heart health</div>
+        </div>
+        <div class="wellness-chevron">▼</div>
+      </div>
+      <div class="wellness-body">
+        <div class="wellness-content">
+          <div class="two-col-grid" id="yoga-list"></div>
+          <div style="margin-top:16px; padding:14px; background:rgba(20,184,166,0.08); border:1px solid rgba(20,184,166,0.2); border-radius:10px;">
+            <div style="font-size:12px; font-weight:600; color:#5eead4; margin-bottom:8px;">🌬️ 4-7-8 BREATHING TECHNIQUE</div>
+            <div style="font-size:13px; color:var(--text-dim); line-height:1.6;">Inhale through nose for <strong>4 seconds</strong> → Hold for <strong>7 seconds</strong> → Exhale through mouth for <strong>8 seconds</strong>. Repeat 4 times. Practice twice daily to reduce blood pressure.</div>
+          </div>
+          <div style="text-align:center; margin-top:14px;">
+            <a href="lifestyle.html" style="display:inline-flex; align-items:center; gap:8px; background:linear-gradient(135deg,rgba(20,184,166,0.15),rgba(6,182,212,0.1)); border:1px solid rgba(20,184,166,0.3); border-radius:10px; padding:10px 20px; font-size:13px; font-weight:600; color:#5eead4; text-decoration:none; transition:all .2s;" onmouseover="this.style.background='rgba(20,184,166,0.25)'" onmouseout="this.style.background='linear-gradient(135deg,rgba(20,184,166,0.15),rgba(6,182,212,0.1))'">🧘 Full Yoga & Wellness Guide →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 4. Diet Guide ── -->
+    <div class="wellness-section" id="ws-diet">
+      <div class="wellness-header" onclick="toggleWellness('ws-diet')">
+        <div class="wellness-icon" style="background:linear-gradient(135deg,rgba(16,185,129,0.2),rgba(5,150,105,0.15));">🥗</div>
+        <div>
+          <div class="wellness-title">Heart-Healthy Diet Guide</div>
+          <div class="wellness-subtitle">Mediterranean & DASH diet recommendations</div>
+        </div>
+        <div class="wellness-chevron">▼</div>
+      </div>
+      <div class="wellness-body">
+        <div class="wellness-content">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+            <div>
+              <div style="font-size:11px; font-weight:700; color:#6ee7b7; text-transform:uppercase; letter-spacing:.06em; margin-bottom:10px;">✅ Eat More</div>
+              <div class="tag-group">
+                <span class="tag green">🐟 Fatty Fish</span><span class="tag green">🥑 Avocados</span>
+                <span class="tag green">🫐 Berries</span><span class="tag green">🥦 Leafy Greens</span>
+                <span class="tag green">🌰 Walnuts</span><span class="tag green">🫘 Legumes</span>
+                <span class="tag green">🫒 Olive Oil</span><span class="tag green">🌾 Whole Grains</span>
+                <span class="tag green">🍅 Tomatoes</span><span class="tag green">🧄 Garlic</span>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px; font-weight:700; color:#fca5a5; text-transform:uppercase; letter-spacing:.06em; margin-bottom:10px;">❌ Limit / Avoid</div>
+              <div class="tag-group">
+                <span class="tag red">🧂 Excess Salt</span><span class="tag red">🥩 Red Meat</span>
+                <span class="tag red">🧈 Trans Fats</span><span class="tag red">🥤 Sugary Drinks</span>
+                <span class="tag red">🍟 Fried Foods</span><span class="tag red">🍕 Processed Foods</span>
+                <span class="tag red">🍷 Excess Alcohol</span><span class="tag red">🍬 Refined Sugar</span>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:14px; padding:12px 14px; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.2); border-radius:10px; font-size:13px; color:var(--text-dim);">
+            💡 <strong style="color:#6ee7b7;">Mediterranean Diet</strong> reduces heart disease risk by up to 30%. Focus on plants, fish, olive oil, and whole grains. Target sodium intake below 2,300mg/day.
+          </div>
+          <div style="text-align:center; margin-top:14px;">
+            <a href="lifestyle.html#diet" style="display:inline-flex; align-items:center; gap:8px; background:linear-gradient(135deg,rgba(16,185,129,0.15),rgba(5,150,105,0.1)); border:1px solid rgba(16,185,129,0.3); border-radius:10px; padding:10px 20px; font-size:13px; font-weight:600; color:#6ee7b7; text-decoration:none; transition:all .2s;" onmouseover="this.style.background='rgba(16,185,129,0.25)'" onmouseout="this.style.background='linear-gradient(135deg,rgba(16,185,129,0.15),rgba(5,150,105,0.1))'">🥗 Full Diet & Meal Plan Guide →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 5. Emergency Signs ── -->
+    <div class="wellness-section" id="ws-emergency">
+      <div class="wellness-header" onclick="toggleWellness('ws-emergency')">
+        <div class="wellness-icon" style="background:linear-gradient(135deg,rgba(239,68,68,0.3),rgba(220,38,38,0.2));">🚨</div>
+        <div>
+          <div class="wellness-title">Emergency Warning Signs</div>
+          <div class="wellness-subtitle">Know when to call for immediate help</div>
+        </div>
+        <div class="wellness-chevron">▼</div>
+      </div>
+      <div class="wellness-body">
+        <div class="wellness-content">
+          <div class="emergency-alert">
+            <div class="e-icon">🚨</div>
+            <div><strong>Call emergency services IMMEDIATELY if you experience:</strong></div>
+          </div>
+          <div class="wellness-list">
+            <div class="wellness-item"><div class="wellness-item-icon">💔</div><div><strong>Sudden crushing chest pain or pressure</strong>Tightness or squeezing that lasts more than 5 minutes or comes and goes</div></div>
+            <div class="wellness-item"><div class="wellness-item-icon">💨</div><div><strong>Sudden shortness of breath</strong>Difficulty breathing at rest without a clear cause</div></div>
+            <div class="wellness-item"><div class="wellness-item-icon">🦾</div><div><strong>Pain radiating to arm, jaw, or back</strong>Especially combined with chest discomfort — classic heart attack sign</div></div>
+            <div class="wellness-item"><div class="wellness-item-icon">😰</div><div><strong>Cold sweat with nausea</strong>Unexplained sweating combined with feeling sick</div></div>
+            <div class="wellness-item"><div class="wellness-item-icon">🌀</div><div><strong>Sudden dizziness or fainting</strong>Loss of consciousness or severe lightheadedness</div></div>
+          </div>
+          <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+            <div style="flex:1; min-width:140px; padding:14px; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); border-radius:10px; text-align:center;">
+              <div style="font-size:22px; margin-bottom:4px;">📞</div>
+              <div style="font-size:12px; font-weight:700; color:#fca5a5;">India</div>
+              <div style="font-size:1.3rem; font-weight:700; color:#f1f5f9; font-family:'Space Grotesk',sans-serif;">112</div>
+            </div>
+            <div style="flex:1; min-width:140px; padding:14px; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); border-radius:10px; text-align:center;">
+              <div style="font-size:22px; margin-bottom:4px;">📞</div>
+              <div style="font-size:12px; font-weight:700; color:#fca5a5;">USA</div>
+              <div style="font-size:1.3rem; font-weight:700; color:#f1f5f9; font-family:'Space Grotesk',sans-serif;">911</div>
+            </div>
+            <div style="flex:1; min-width:140px; padding:14px; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); border-radius:10px; text-align:center;">
+              <div style="font-size:22px; margin-bottom:4px;">📞</div>
+              <div style="font-size:12px; font-weight:700; color:#fca5a5;">UK</div>
+              <div style="font-size:1.3rem; font-weight:700; color:#f1f5f9; font-family:'Space Grotesk',sans-serif;">999</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="reveal visible">
+    <p><strong>Heart Disease Prediction System v2.0</strong> · Production-Grade ML Pipeline</p>
+    <p>Gradient Boosting Classifier (87.5% accuracy) · Trained on 918 clinical records · 11 diagnostic features</p>
+    <p><em>Disclaimer: This tool is for educational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment.</em></p>
+  </footer>
+</div>
+
+<!-- ──────────── JavaScript ML Engine ──────────── -->
+<script>
+/* ───────────────────────────────────────────────────────
+   LOGISTIC REGRESSION WEIGHTS
+   Derived from heart.csv training
+   ─────────────────────────────────────────────────────── */
+const ML_WEIGHTS = {
+  intercept: -0.8432210372014419,
+  Age: 0.01586880140392996,
+  RestingBP: 0.0037046967337449744,
+  Cholesterol: -0.0040664060007960775,
+  FastingBS: 1.0351981780515485,
+  MaxHR: -0.005478440245639501,
+  Oldpeak: 0.3798758773168223,
+  Sex_M: 1.3252807662992752,
+  ChestPainType_ATA: -1.608072068884555,
+  ChestPainType_NAP: -1.4935360477313235,
+  ChestPainType_TA: -1.1616235640998473,
+  RestingECG_Normal: -0.15513051264150868,
+  RestingECG_ST: -0.2186111909746862,
+  ExerciseAngina_Y: 0.9078075050015877,
+  ST_Slope_Flat: 1.334735735753251,
+  ST_Slope_Up: -0.9935883004488318
+};
+
+// UI Handlers
+function updateRange(el, targetId, min, max) {
+  const val = parseFloat(el.value);
+  const percent = ((val - min) / (max - min)) * 100;
+  el.style.setProperty('--pct', percent + '%');
+  
+  let displayVal = val;
+  if(targetId === 'age-val') displayVal += ' yrs';
+  else if(targetId === 'oldpeak-val') displayVal = val.toFixed(1);
+  
+  document.getElementById(targetId).innerText = displayVal;
+}
+
+function setToggle(groupId, labelEl, val) {
+  const container = document.getElementById(groupId);
+  container.querySelectorAll('.toggle-pill').forEach(l => l.classList.remove('active'));
+  labelEl.classList.add('active');
+  labelEl.querySelector('input').checked = true;
+}
+
+// Initial setup
+document.querySelectorAll('input[type=range]').forEach(el => {
+  const min = el.getAttribute('min');
+  const max = el.getAttribute('max');
+  const val = parseFloat(el.value);
+  const percent = ((val - min) / (max - min)) * 100;
+  el.style.setProperty('--pct', percent + '%');
+});
+
+// Run Prediction
+function runPrediction() {
+  const btn = document.getElementById('predict-btn');
+  const label = document.getElementById('btn-label');
+  const spinner = document.getElementById('spinner');
+
+  // Loading state
+  btn.style.pointerEvents = 'none';
+  label.innerText = 'Analyzing...';
+  spinner.style.display = 'block';
+
+  setTimeout(() => {
+    // 1. Gather Inputs
+    const age = parseFloat(document.getElementById('age').value);
+    const sex = document.querySelector('input[name="sex"]:checked').value;
+    const cpt = document.getElementById('chest-pain').value;
+    const rbp = parseFloat(document.getElementById('resting-bp').value);
+    const chol = parseFloat(document.getElementById('cholesterol').value);
+    const fbs = parseFloat(document.querySelector('input[name="fbs"]:checked').value);
+    const exang = document.querySelector('input[name="exang"]:checked').value;
+    const recg = document.getElementById('resting-ecg').value;
+    const mhr = parseFloat(document.getElementById('max-hr').value);
+    const oldpeak = parseFloat(document.getElementById('oldpeak').value);
+    const st = document.querySelector('input[name="st_slope"]:checked').value;
+
+    // 2. Calculate Log-Odds (z)
+    let z = ML_WEIGHTS.intercept;
+    
+    // Continuous
+    z += age * ML_WEIGHTS.Age;
+    z += rbp * ML_WEIGHTS.RestingBP;
+    z += chol * ML_WEIGHTS.Cholesterol;
+    z += fbs * ML_WEIGHTS.FastingBS;
+    z += mhr * ML_WEIGHTS.MaxHR;
+    z += oldpeak * ML_WEIGHTS.Oldpeak;
+
+    // Categorical
+    if(sex === 'M') z += ML_WEIGHTS.Sex_M;
+    
+    if(cpt === 'ATA') z += ML_WEIGHTS.ChestPainType_ATA;
+    else if(cpt === 'NAP') z += ML_WEIGHTS.ChestPainType_NAP;
+    else if(cpt === 'TA') z += ML_WEIGHTS.ChestPainType_TA;
+    
+    if(recg === 'Normal') z += ML_WEIGHTS.RestingECG_Normal;
+    else if(recg === 'ST') z += ML_WEIGHTS.RestingECG_ST;
+    
+    if(exang === 'Y') z += ML_WEIGHTS.ExerciseAngina_Y;
+    
+    if(st === 'Flat') z += ML_WEIGHTS.ST_Slope_Flat;
+    else if(st === 'Up') z += ML_WEIGHTS.ST_Slope_Up;
+
+    // 3. Sigmoid to Probability
+    const probability = 1 / (1 + Math.exp(-z));
+    const riskPct = (probability * 100).toFixed(1);
+
+    // 4. Determine Status
+    let riskLevel, badgeClass, gaugeColor;
+    if (probability < 0.35) {
+      riskLevel = "Low Risk";
+      badgeClass = "low";
+      gaugeColor = "linear-gradient(90deg, var(--success), var(--accent-3))";
+    } else if (probability < 0.65) {
+      riskLevel = "Elevated Risk";
+      badgeClass = "moderate";
+      gaugeColor = "linear-gradient(90deg, var(--warning), var(--accent-hot))";
+    } else {
+      riskLevel = "High Risk";
+      badgeClass = "high";
+      gaugeColor = "linear-gradient(90deg, var(--danger), var(--accent-2))";
+    }
+
+    // Identify Key Factors
+    const factors = [];
+    if(st === 'Flat' || st === 'Down') factors.push({name: "ST Slope Indicates Risk", impact: "high"});
+    if(exang === 'Y') factors.push({name: "Exercise-Induced Angina", impact: "high"});
+    if(cpt === 'ASY') factors.push({name: "Asymptomatic Chest Pain Pattern", impact: "high"});
+    if(sex === 'M') factors.push({name: "Male Baseline Factor", impact: "moderate"});
+    if(fbs === 1) factors.push({name: "Elevated Fasting Blood Sugar", impact: "moderate"});
+    if(oldpeak > 1.5) factors.push({name: "Elevated ST Depression", impact: "moderate"});
+    
+    if(cpt === 'ATA' || cpt === 'NAP') factors.push({name: "Non-Asymptomatic Pain Profile", impact: "low"});
+    if(mhr > 150) factors.push({name: "Healthy Max Heart Rate", impact: "low"});
+    if(st === 'Up') factors.push({name: "Normal ST Slope", impact: "low"});
+
+    // Render Factors
+    let breakdownHTML = '';
+    const topFactors = factors.slice(0, 4); // Show top 4
+    if(topFactors.length === 0) breakdownHTML = '<div class="breakdown-row"><span class="breakdown-key">No primary flags</span></div>';
+    topFactors.forEach(f => {
+      let icon = f.impact === 'low' ? '🟢' : (f.impact === 'moderate' ? '🟠' : '🔴');
+      let valClass = f.impact === 'low' ? 'factor-negative' : 'factor-positive';
+      let valText = f.impact === 'low' ? 'Reduces Risk' : 'Increases Risk';
+      breakdownHTML += `
+        <div class="breakdown-row">
+          <span class="breakdown-key">${icon} ${f.name}</span>
+          <span class="breakdown-val ${valClass}">${valText}</span>
+        </div>
+      `;
+    });
+
+    // 5. Update UI
+    document.getElementById('placeholder').style.display = 'none';
+    
+    const riskCard = document.getElementById('res-risk');
+    riskCard.className = `metric-card risk-${badgeClass === 'moderate' ? 'moderate' : badgeClass}`;
+    
+    document.getElementById('risk-pred').innerText = riskPct + '%';
+    document.getElementById('risk-pred').style.color = badgeClass === 'low' ? 'var(--success)' : (badgeClass === 'high' ? 'var(--danger)' : 'var(--warning)');
+    
+    const badge = document.getElementById('risk-badge');
+    badge.className = `status-badge ${badgeClass}`;
+    badge.innerText = riskLevel;
+
+    document.getElementById('risk-gauge').style.background = gaugeColor;
+    
+    setTimeout(() => {
+      document.getElementById('risk-gauge').style.width = riskPct + '%';
+    }, 50);
+
+    document.getElementById('risk-breakdown').innerHTML = `
+      <div style="font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:8px; text-transform:uppercase;">Primary Clinical Factors</div>
+      ${breakdownHTML}
+    `;
+
+    riskCard.classList.remove('hidden');
+
+    // 6. Show Wellness Sections
+    const wellnessContainer = document.getElementById('wellness-container');
+    wellnessContainer.style.display = 'flex';
+    // Auto-open prevention section
+    setTimeout(() => {
+      toggleWellness('ws-prevention', true);
+    }, 400);
+
+    // 7. Populate dynamic wellness content based on risk
+    populateWellness(badgeClass, probability, { age, sex, cpt, rbp, chol, fbs, exang, mhr, oldpeak, st });
+
+    // 8. Notify chatbot of result
+    if (window.HeartCareChat) {
+      window.HeartCareChat.setRiskResult(riskPct, badgeClass);
+    }
+
+    // Reset button
+    btn.style.pointerEvents = 'auto';
+    label.innerText = 'Analyze Clinical Risk';
+    spinner.style.display = 'none';
+
+    // Scroll to results
+    setTimeout(() => {
+      document.getElementById('res-risk').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 200);
+
+  }, 600);
+}
+
+/* ─── Toggle Wellness Accordion ─── */
+function toggleWellness(id, forceOpen) {
+  const el = document.getElementById(id);
+  if (forceOpen !== undefined) {
+    if (forceOpen) el.classList.add('open');
+    else el.classList.remove('open');
+  } else {
+    el.classList.toggle('open');
+  }
+}
+
+/* ─── Populate Wellness Content ─── */
+function populateWellness(riskLevel, prob, inputs) {
+  // --- Prevention List ---
+  const preventionItems = [
+    { icon: '🚭', title: 'Quit Smoking', desc: 'Smoking doubles your risk. Even cutting down significantly reduces cardiovascular damage. Nicotine replacement therapy has 70% success rate.' },
+    { icon: '🏃', title: 'Exercise 150+ Minutes/Week', desc: 'Aim for moderate intensity (brisk walking, cycling, swimming). Even 30 minutes/day, 5 days a week reduces cardiac events by 35%.' },
+    { icon: '🩺', title: 'Regular Blood Pressure Monitoring', desc: `Your resting BP input: ${inputs.rbp} mmHg. Target: below 130/80 mmHg. Check every 3 months if elevated.` },
+    { icon: '🩸', title: 'Cholesterol Management', desc: `Your cholesterol input: ${inputs.chol} mg/dL. Optimal LDL is below 100 mg/dL. Dietary changes can reduce LDL by 20-30%.` },
+    { icon: '😴', title: 'Quality Sleep (7-9 Hours)', desc: 'Poor sleep raises blood pressure and inflammation. Sleep apnea is a major underdiagnosed cardiac risk — consider a sleep study if you snore heavily.' },
+    { icon: '🧘', title: 'Stress Management', desc: 'Chronic stress raises cortisol, blood pressure, and inflammation. Practice 10-20 min of meditation, deep breathing, or yoga daily.' },
+    { icon: '⚖️', title: 'Maintain Healthy Weight', desc: 'BMI above 30 significantly increases cardiac risk. Even a 5-10% weight reduction meaningfully lowers blood pressure and cholesterol.' },
+    { icon: '🍬', title: 'Control Blood Sugar', desc: inputs.fbs ? '⚠️ You indicated elevated fasting blood sugar (>120 mg/dL). Prediabetes doubles heart disease risk — consult your doctor about lifestyle interventions.' : 'Maintain fasting glucose below 100 mg/dL. Limit refined carbohydrates and sugary beverages.' },
+  ];
+
+  if (riskLevel === 'high') {
+    preventionItems.unshift({ icon: '🏥', title: '🔴 URGENT: Schedule Cardiologist Appointment', desc: 'Your risk score is HIGH. Please schedule a consultation with a cardiologist within the next 2 weeks for a full cardiovascular evaluation including ECG, stress test, and blood work.' });
+  } else if (riskLevel === 'moderate') {
+    preventionItems.unshift({ icon: '👨‍⚕️', title: '🟠 Recommended: See a Doctor Soon', desc: 'Your risk score is elevated. Consider scheduling a preventive cardiology consultation in the next 1-3 months. Ask about a baseline cardiovascular risk assessment.' });
+  }
+
+  document.getElementById('prevention-list').innerHTML = preventionItems
+    .map(i => `<div class="wellness-item"><div class="wellness-item-icon">${i.icon}</div><div><strong>${i.title}</strong>${i.desc}</div></div>`)
+    .join('');
+
+  // --- Treatment List ---
+  let treatmentItems = [
+    { icon: '🔵', title: 'Lifestyle Medicine (First Line)', desc: 'For most risk levels, lifestyle modifications are the most powerful intervention. Diet, exercise, sleep, and stress management can rival medication effectiveness.' },
+    { icon: '💊', title: 'Statins (Cholesterol)', desc: 'Atorvastatin, Rosuvastatin — reduce LDL cholesterol by 40-60%. Typically prescribed when LDL is above 130 mg/dL or risk score is high.' },
+    { icon: '💊', title: 'Beta-Blockers', desc: 'Metoprolol, Atenolol — reduce heart rate and blood pressure. Used for hypertension, after heart attacks, and heart failure.' },
+    { icon: '💊', title: 'ACE Inhibitors / ARBs', desc: 'Lisinopril, Ramipril, Valsartan — lower blood pressure by relaxing blood vessels. Especially beneficial for diabetics.' },
+    { icon: '💊', title: 'Aspirin Therapy', desc: 'Low-dose aspirin (81mg) may be recommended for high-risk individuals to prevent blood clots. NOT recommended as general prevention — discuss with your doctor.' },
+    { icon: '🏥', title: 'Interventional Procedures', desc: 'For blocked arteries: Angioplasty (balloon + stent), CABG (bypass surgery). These are considered when lifestyle and medication are insufficient.' },
+    { icon: '📱', title: 'Cardiac Monitoring', desc: 'Wearable devices, continuous glucose monitors, home BP cuffs — technology can help you track metrics and share data with your healthcare team.' },
+  ];
+
+  if (riskLevel === 'high') {
+    treatmentItems = [
+      { icon: '🚨', title: '⚡ HIGH PRIORITY: Immediate Medical Evaluation', desc: 'With a high-risk score, you should seek medical evaluation soon. Your doctor will likely order: ECG, echocardiogram, stress test, lipid panel, HbA1c, and coronary calcium score.' },
+      ...treatmentItems
+    ];
+  }
+
+  document.getElementById('treatment-list').innerHTML = treatmentItems
+    .map(i => `<div class="wellness-item"><div class="wellness-item-icon">${i.icon}</div><div><strong>${i.title}</strong>${i.desc}</div></div>`)
+    .join('');
+
+  // --- Yoga List ---
+  const yogaPoses = [
+    { icon: '🌅', name: 'Savasana (Corpse Pose)', benefit: 'Reduces cortisol & BP', desc: 'Lie flat, breathe deeply for 10 min. The most powerful pose for calming the nervous system.' },
+    { icon: '🦋', name: 'Baddha Konasana (Butterfly)', benefit: 'Improves circulation', desc: 'Sit with feet together, gently flap knees. Opens hips and improves pelvic blood flow.' },
+    { icon: '🌉', name: 'Setu Bandha (Bridge Pose)', benefit: 'Strengthens heart', desc: 'Lie on back, lift hips. Strengthens core and back, improves cardiac output.' },
+    { icon: '🏔️', name: 'Tadasana (Mountain Pose)', benefit: 'Posture & blood flow', desc: 'Stand tall, breathe deeply. Improves posture, opens chest, enhances lung capacity.' },
+    { icon: '🐱', name: 'Marjaryasana (Cat-Cow)', benefit: 'Calms nervous system', desc: 'Gentle spinal flex on hands and knees. Soothes anxiety and regulates breathing.' },
+    { icon: '🦅', name: 'Viparita Karani (Legs-Up-Wall)', benefit: 'Lowers BP significantly', desc: 'Legs up wall for 10 min. Reverses venous pooling, instantly relaxes the cardiovascular system.' },
+  ];
+
+  document.getElementById('yoga-list').innerHTML = yogaPoses
+    .map(p => `
+      <div class="wellness-item" style="flex-direction:column; gap:6px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div class="wellness-item-icon" style="font-size:20px;">${p.icon}</div>
+          <div>
+            <strong style="font-size:13px;">${p.name}</strong>
+            <span class="tag blue" style="margin-left:8px; vertical-align:middle;">${p.benefit}</span>
+          </div>
+        </div>
+        <div style="font-size:12.5px; color:var(--text-muted); padding-left:28px;">${p.desc}</div>
+      </div>`)
+    .join('');
+}
+</script>
+<script src="chatbot.js"></script>
+</body>
+</html>
