@@ -41,18 +41,17 @@ jobs:
         flake8 scripts/ api/ --count --statistics --show-source 2>/dev/null || true
       continue-on-error: true
     
-    - name: Run unit tests
-      run: |
-        pytest tests/ -v --tb=short
-    
     - name: Check data integrity
       run: |
         python -c "import pandas as pd; df = pd.read_csv('heart.csv'); assert len(df) == 918; assert 'HeartDisease' in df.columns; print('✓ Dataset integrity verified')"
     
-    - name: Verify model training script
+    - name: Train model and prepare artifacts
       run: |
         python scripts/train.py
-      continue-on-error: true
+    
+    - name: Run unit tests
+      run: |
+        pytest tests/ -v --tb=short
     
     - name: Generate test coverage report
       run: |

@@ -23,7 +23,7 @@
     "solver": "lbfgs",
     "max_iter": 1000
   },
-  "training_date": "2026-10-08T08:41:13.563585",
+  "training_date": "2026-10-08T08:48:46.276314",
   "test_size": 0.2,
   "random_state": 42
 }
