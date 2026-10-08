@@ -4,7 +4,7 @@ Get the Heart Disease Predictor running locally in 5 minutes.
 
 ## Prerequisites
 
-- **Python 3.8+** ([download](https://www.python.org/downloads/))
+- **Python 3.10+** ([download](https://www.python.org/downloads/))
 - **Git** (optional, for cloning)
 
 ## Option A: Frontend Only (No Backend Required)

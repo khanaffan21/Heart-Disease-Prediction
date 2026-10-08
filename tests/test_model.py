@@ -53,7 +53,7 @@ def test_categorical_encoding(sample_data):
     categorical_cols = ['Sex', 'ChestPainType', 'RestingECG', 'ExerciseAngina', 'ST_Slope']
     X = sample_data.drop('HeartDisease', axis=1)
     
-    X_encoded = pd.get_dummies(X, columns=categorical_cols, drop='first')
+    X_encoded = pd.get_dummies(X, columns=categorical_cols, drop_first=True)
     
     # Check shape increased
     assert X_encoded.shape[1] > X.shape[1]
@@ -103,7 +103,7 @@ def test_model_training(sample_data):
     categorical_cols = ['Sex', 'ChestPainType', 'RestingECG', 'ExerciseAngina', 'ST_Slope']
     continuous_cols = ['Age', 'RestingBP', 'Cholesterol', 'FastingBS', 'MaxHR', 'Oldpeak']
     
-    X = pd.get_dummies(X, columns=categorical_cols, drop='first')
+    X = pd.get_dummies(X, columns=categorical_cols, drop_first=True)
     
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y
@@ -137,7 +137,7 @@ def test_model_prediction(sample_data):
     categorical_cols = ['Sex', 'ChestPainType', 'RestingECG', 'ExerciseAngina', 'ST_Slope']
     continuous_cols = ['Age', 'RestingBP', 'Cholesterol', 'FastingBS', 'MaxHR', 'Oldpeak']
     
-    X = pd.get_dummies(X, columns=categorical_cols, drop='first')
+    X = pd.get_dummies(X, columns=categorical_cols, drop_first=True)
     
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y
@@ -176,7 +176,7 @@ def test_model_score(sample_data):
     categorical_cols = ['Sex', 'ChestPainType', 'RestingECG', 'ExerciseAngina', 'ST_Slope']
     continuous_cols = ['Age', 'RestingBP', 'Cholesterol', 'FastingBS', 'MaxHR', 'Oldpeak']
     
-    X = pd.get_dummies(X, columns=categorical_cols, drop='first')
+    X = pd.get_dummies(X, columns=categorical_cols, drop_first=True)
     
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y

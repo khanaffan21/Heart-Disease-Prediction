@@ -113,7 +113,7 @@ def predict():
         return jsonify({'error': 'Model not loaded'}), 503
     
     try:
-        data = request.get_json()
+        data = request.get_json(silent=True)
         
         if not data:
             return jsonify({'error': 'No JSON data provided'}), 400
@@ -178,10 +178,10 @@ def predict_batch():
         return jsonify({'error': 'Model not loaded'}), 503
     
     try:
-        data = request.get_json()
+        data = request.get_json(silent=True)
         
         if not data or 'records' not in data:
-            return jsonify({'error': 'Expected {"records": [...]}'})
+            return jsonify({'error': 'Expected {"records": [...]}'}), 400
         
         records = data['records']
         if not isinstance(records, list):

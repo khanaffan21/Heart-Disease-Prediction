@@ -7,17 +7,15 @@ import json
 import sys
 import os
 
-# Mock model loading for tests
-sys.path.insert(0, os.path.dirname(__file__))
+# Add project root to sys.path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 @pytest.fixture
 def client():
     """Create Flask test client."""
-    # We can't import app directly without models loaded,
-    # so we mock the loading
-    from api.app import app
-    
+    from api.app import app, load_model_artifacts
+    load_model_artifacts()
     with app.test_client() as client:
         yield client
 

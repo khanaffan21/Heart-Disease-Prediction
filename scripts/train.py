@@ -44,7 +44,7 @@ def create_directories():
     print(f"✓ Directories ready")
 
 
-def load_data(filepath):
+def load_data(filepath=DATA_PATH):
     """Load and inspect dataset."""
     df = pd.read_csv(filepath)
     print(f"\n📊 Dataset loaded:")
@@ -74,8 +74,8 @@ def preprocess_data(df):
     categorical_cols = ["Sex", "ChestPainType", "RestingECG", "ExerciseAngina", "ST_Slope"]
     continuous_cols = ["Age", "RestingBP", "Cholesterol", "FastingBS", "MaxHR", "Oldpeak"]
     
-    # Encode categorical features (one-hot encoding with drop='first' for avoid multicollinearity)
-    X_encoded = pd.get_dummies(X, columns=categorical_cols, drop='first')
+    # Encode categorical features (one-hot encoding with drop_first=True to avoid multicollinearity)
+    X_encoded = pd.get_dummies(X, columns=categorical_cols, drop_first=True)
     
     print(f"   Features after encoding: {X_encoded.shape[1]}")
     print(f"   Feature names: {X_encoded.columns.tolist()}")
@@ -186,7 +186,7 @@ def save_model(model, scaler, feature_names):
         'random_state': RANDOM_STATE
     }
     
-    with open(config_path, 'w') as f:
+    with open(config_path, 'w', encoding='utf-8') as f:
         json.dump(config, f, indent=2)
     print(f"   ✓ Config saved to {config_path}")
 
@@ -331,7 +331,7 @@ print(f"Disease Risk: {{risk_pct:.1f}}%")
 **Python Version**: 3.8+
 """
     
-    with open(REPORT_PATH, 'w') as f:
+    with open(REPORT_PATH, 'w', encoding='utf-8') as f:
         f.write(report)
     print(f"   ✓ Report saved to {REPORT_PATH}")
 

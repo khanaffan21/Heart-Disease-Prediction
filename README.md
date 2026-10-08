@@ -42,7 +42,7 @@ A machine learning-powered web application that predicts heart disease risk base
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.8+
+- Python 3.10+
 - Node.js 16+ (optional, for local serving)
 
 ### Setup
